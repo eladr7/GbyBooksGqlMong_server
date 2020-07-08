@@ -7,6 +7,8 @@ const schema = require('./schema/schema');
 
 const cors = require('cors');
 
+const API_PORT = process.env.PORT || 3001;
+
 // The express() function creates our app
 const app = express();
 
@@ -35,6 +37,9 @@ app.use('/graphql', graphqlHTTP({
 
 // Tell our app to listen to port 4000,
 // When our app begins to listen on that port - the callback is going to fire
-app.listen(4000, () => {
-    console.log('now listening for requests on port 4000');
-});
+// app.listen(4000, () => {
+//     console.log('now listening for requests on port 4000');
+// });
+
+// launch our backend into a port
+app.listen(API_PORT, () => console.log(`LISTENING ON PORT ${API_PORT}`));
