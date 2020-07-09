@@ -7,7 +7,7 @@ const schema = require('./schema/schema');
 
 const cors = require('cors');
 
-const API_PORT = process.env.PORT || 3001;
+const API_PORT = process.env.PORT || 4000;
 
 // The express() function creates our app
 const app = express();
