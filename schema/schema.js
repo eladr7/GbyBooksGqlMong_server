@@ -2,6 +2,7 @@ const graphql = require('graphql');
 const _ = require('lodash');
 const Book = require('../models/book');
 const Author = require('../models/author');
+const User = require('../models/user');
 
 
 const {
@@ -66,6 +67,22 @@ const AuthorType = new GraphQLObjectType({
     })
 });
 
+const UserType = new GraphQLObjectType({
+    name: 'User',
+    fields: () => ({
+        id: { type: GraphQLID },
+        name: { type: GraphQLString },
+        email: { type: GraphQLString },
+        books: {
+            type: new GraphQLList(BookType),
+            resolve(parent, args) {
+                return Book.find().where('_id').in(parent.boughtBooks).exec((err, boughtBooks) => {});
+                // return await Book.find().where('_id').in(parent.boughtBooks).exec();
+            }
+        }
+    })
+});
+
 // book means: that when the client sends a request to get book -
 // we'll get him an object of type: BookType, and it needs arguments (to determine which book it is).
 // And the request from the client will look like this:
@@ -109,6 +126,14 @@ const RootQuery = new GraphQLObjectType({
                 console.log(typeof (args.id));
                 // return _.find(authors, { id: args.id });
                 return Author.findById(args.id);
+            }
+        },
+        user: { 
+            type: UserType,
+            args: { email: { type: new GraphQLNonNull(GraphQLString) } },
+            resolve(parent, args) {
+                console.log(args.email);
+                return User.findOne({ email: args.email });
             }
         },
         books: {
@@ -163,6 +188,39 @@ const Mutation = new GraphQLObjectType({
                 });
 
                 return book.save();
+            }
+        },
+        addUser: {
+            type: UserType,
+            args: { 
+                name: {type : new GraphQLNonNull(GraphQLString)},
+                email: {type : new GraphQLNonNull(GraphQLString)},
+                // boughtBooks: { type : new GraphQLList(GraphQLID)},
+            },
+            resolve(parent, args)  {
+                let user = new User({
+                    name: args.name,
+                    email: args.email,
+                    boughtBooks: []
+                });
+
+                return user.save();
+            }
+        },
+        buyBook: {
+            type: UserType,
+            args: { 
+                email: {type : new GraphQLNonNull(GraphQLString)},
+                book_id: { type: new GraphQLNonNull(GraphQLID) }
+            },
+            resolve(parent, args)  {
+                console.log("the suka email is: " + args.email);
+                console.log("the suka book_id is: " + args.book_id);
+                return User.findOneAndUpdate({email: args.email}, {$push: {boughtBooks: args.book_id}});
+                // const user = User.findOne({email: args.email}, function(err,obj) { console.log(obj); });
+                // user.boughtBooks.push(book_id);
+                // console.log("the suka boughtBooks are: " + user.boughtBooks);
+                // return user.save(function(err, result) { console.log(result); });
             }
         }
     }
